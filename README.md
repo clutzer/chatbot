@@ -18,3 +18,10 @@ Environment="OLLAMA_HOST=0.0.0.0"
 ```
 
 And, reloading systemd and restarting the ollama service.
+
+## Models
+
+### Deepseek
+
+https://ollama.com/library/deepseek-r1
+
