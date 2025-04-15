@@ -6,6 +6,7 @@ OLLAMA_VERSION := latest
 OLLAMA_URL := https://ollama.com/install.sh
 MODEL_SIZES := 1.5b 7b 8b 14b 32b 70b 671b
 INSTALL_DIR := /usr/local/bin
+PATCH_FILE := patches/ollama-service-listen-on-all.patch
 CURL := curl
 SHELL := /bin/bash
 
@@ -16,15 +17,42 @@ all: install-ollama pull-models
 # Install Ollama
 .PHONY: install-ollama
 install-ollama:
-	@echo "Installing Ollama..."
-	@$(CURL) -fsSL $(OLLAMA_URL) | bash
-	@if ! command -v ollama >/dev/null 2>&1; then \
-	    echo "Ollama installation failed!"; \
-	    exit 1; \
+	@echo "Checking for existing Ollama installation..."
+	@if command -v ollama >/dev/null 2>&1 && ollama --version >/dev/null 2>&1; then \
+		echo "Ollama is already installed. Version:"; \
+		ollama --version; \
 	else \
-	    echo "Ollama installed successfully."; \
+		echo "Ollama not found or not working. Installing..."; \
+		$(CURL) -fsSL $(OLLAMA_URL) | bash; \
+		if ! command -v ollama >/dev/null 2>&1; then \
+			echo "Ollama installation failed!"; \
+			exit 1; \
+		else \
+			echo "Ollama installed successfully."; \
+		fi; \
+		ollama --version; \
 	fi
-	@ollama --version
+
+.PHONY: patch-ollama
+patch-ollama:
+	@echo "Checking for Ollama service patch..."
+	@if [ ! -f $(PATCH_FILE) ]; then \
+		echo "Patch file $(PATCH_FILE) not found!"; \
+		exit 1; \
+	fi
+	@if [ ! -f $(SERVICE_FILE) ]; then \
+		echo "Ollama service file $(SERVICE_FILE) not found! Ensure Ollama is installed."; \
+		exit 1; \
+	fi
+	@if sudo patch --dry-run $(SERVICE_FILE) < $(PATCH_FILE) >/dev/null 2>&1; then \
+		echo "Applying patch to $(SERVICE_FILE)..."; \
+		sudo patch $(SERVICE_FILE) < $(PATCH_FILE); \
+		sudo systemctl daemon-reload; \
+		sudo systemctl restart ollama || true; \
+		echo "Patch applied and Ollama service restarted."; \
+	else \
+		echo "Patch already applied or not applicable. Skipping."; \
+	fi
 
 # Pull all DeepSeek-R1 models
 .PHONY: pull-models
