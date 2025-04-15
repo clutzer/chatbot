@@ -7,6 +7,7 @@ OLLAMA_URL := https://ollama.com/install.sh
 MODEL_SIZES := 1.5b 7b 8b 14b 32b 70b 671b
 INSTALL_DIR := /usr/local/bin
 PATCH_FILE := patches/ollama-service-listen-on-all.patch
+SERVICE_FILE := /etc/systemd/system/ollama.service
 CURL := curl
 SHELL := /bin/bash
 
@@ -75,6 +76,16 @@ list-models:
 	@echo
 	@echo "Installed models..."
 	@ollama list
+
+# List running models
+.PHONY: list-running-models
+list-running-models:
+	@echo "Listing running Ollama models..."
+	@if ollama ps 2>/dev/null | grep -q .; then \
+		ollama ps; \
+	else \
+		echo "No models are currently running."; \
+	fi
 
 # Verify Ollama service
 .PHONY: verify
