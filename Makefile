@@ -87,6 +87,10 @@ list-running-models:
 		echo "No models are currently running."; \
 	fi
 
+.PHONY: dependencies
+dependencies:
+	apt install nvidia-cuda-toolkit
+
 # Verify Ollama service
 .PHONY: verify
 verify:
