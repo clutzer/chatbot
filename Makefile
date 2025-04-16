@@ -13,7 +13,7 @@ SHELL := /bin/bash
 
 # Default target
 .PHONY: all
-all: install-ollama pull-models
+all: install-ollama pull-model-14b
 
 # Install Ollama
 .PHONY: install-ollama
@@ -63,7 +63,7 @@ pull-models: $(addprefix pull-model-,$(MODEL_SIZES))
 .PHONY: pull-model-%
 pull-model-%:
 	@echo "Pulling DeepSeek-R1 model: deepseek-r1:$*..."
-	@if ollama pull deepseek-r1:$* 2>/dev/null; then \
+	@if ollama pull deepseek-r1:$*; then \
 	    echo "Successfully pulled deepseek-r1:$*"; \
 	else \
 	    echo "Failed to pull deepseek-r1:$*. Check model availability or network."; \
@@ -95,7 +95,7 @@ dependencies:
 .PHONY: verify
 verify:
 	@echo "Verifying Ollama service..."
-	@if ollama run deepseek-r1:1.5b "hello" >/dev/null 2>&1; then \
+	@if ollama run deepseek-r1:1.5b "hello" 2>&1; then \
 	    echo "Ollama service is running correctly."; \
 	else \
 	    echo "Ollama service verification failed."; \
